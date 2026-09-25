@@ -1,0 +1,27 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>لیست قیمت سریع</title><style>
+body{margin:0;background:#f1f5f9;color:#0f172a;font-family:Tahoma,Arial}header{background:#0f172a;color:white;padding:16px}main{max-width:700px;margin:auto;padding:10px}.card{background:white;border-radius:14px;padding:14px;margin:9px 0}button,input{font:inherit;padding:10px;border-radius:9px;border:1px solid #cbd5e1}button{background:#0f172a;color:white;border:0}.rate{text-align:center}.rate input{font-size:24px;font-weight:bold;text-align:center;width:90%}.cats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cat,.brand{padding:14px;background:#e2e8f0;border-radius:10px;text-align:center;font-weight:bold;margin:6px 0}.item{display:flex;justify-content:space-between;padding:13px 0;border-bottom:1px solid #ddd}.price{font-weight:bold;font-size:17px;white-space:nowrap}.hidden{display:none}.back{background:#64748b;margin-bottom:10px}.row{display:grid;grid-template-columns:1fr 1fr;gap:7px}.wide{grid-column:1/-1}label{font-size:11px;color:#64748b;display:block}</style></head><body>
+<header><b>لیست قیمت سریع</b><div style="font-size:11px;color:#cbd5e1">آفلاین • بدون تبلیغ • مناسب Screenshot</div></header><main>
+<div class="card rate"><label>نرخ دلار امروز (تومان)</label><input id="rate" inputmode="numeric"><br><button onclick="saveRate()">ذخیره نرخ</button></div>
+<div id="home" class="card"><h3>دسته‌بندی محصولات</h3><div id="cats" class="cats"></div><button onclick="manage()">مدیریت محصولات</button></div>
+<div id="brands" class="card hidden"><button class="back" onclick="home()">← دسته‌ها</button><h3 id="bt"></h3><div id="bl"></div></div>
+<div id="products" class="card hidden"><button class="back" onclick="brands()">← برندها</button><h3 id="pt"></h3><input id="search" placeholder="جستجوی محصول" oninput="products()"><div id="pl"></div></div>
+<div id="manage" class="card hidden"><button class="back" onclick="home()">← برگشت</button><h3>افزودن محصول</h3><div class="row"><div class="wide"><label>نام محصول</label><input id="n" style="width:100%"></div><div><label>دسته</label><input id="c"></div><div><label>برند</label><input id="b"></div><div><label>قیمت دلار</label><input id="u"></div><div><label>گمرک %</label><input id="g" value="0"></div><div><label>سود %</label><input id="p" value="20"></div><div><label>حمل</label><input id="s" value="0"></div><div><label>متفرقه</label><input id="e" value="0"></div></div><button style="width:100%;margin-top:8px" onclick="add()">ذخیره محصول</button><div id="ml"></div></div>
+</main><script>
+const K='price_fast_v6';let d=JSON.parse(localStorage.getItem(K)||'null')||{rate:185000,p:[]};
+let id=1;for(const brand of ['Next','TELEtek','Astrocom','Elcomax'])for(const o of [8,12,16,24,32,48])d.p.push({id:id++,name:'مولتی سوییچ '+o+' خروجی',cat:'مولتی سوییچ',brand,usd:0,g:0,profit:20,ship:0,extra:0});
+if(!localStorage.getItem(K))localStorage.setItem(K,JSON.stringify(d));else d=JSON.parse(localStorage.getItem(K));
+const $=x=>document.getElementById(x),num=x=>parseFloat(String(x||'').replace(/,/g,''))||0,fmt=x=>Math.round(x).toLocaleString('en-US');
+function save(){localStorage.setItem(K,JSON.stringify(d))}function money(x){return fmt(x)+' تومان'}function calc(p){let x=p.usd*d.rate+p.ship+p.extra;return x*(1+p.g/100)*(1+p.profit/100)}
+function saveRate(){d.rate=num($('rate').value)||185000;$('rate').value=fmt(d.rate);save();products()}
+let cat='',brand='';
+function home(){['brands','products','manage'].forEach(x=>$(x).classList.add('hidden'));$('home').classList.remove('hidden');cats()}
+function cats(){let a=[...new Set(d.p.map(x=>x.cat))];$('cats').innerHTML=a.map(x=>'<div class="cat" onclick="catgo('+JSON.stringify(x)+')">'+x+'</div>').join('')}
+function catgo(x){cat=x;$('home').classList.add('hidden');$('brands').classList.remove('hidden');$('bt').textContent=x;let a=[...new Set(d.p.filter(p=>p.cat==x).map(p=>p.brand))];$('bl').innerHTML=a.map(x=>'<div class="brand" onclick="brandgo('+JSON.stringify(x)+')">'+x+'</div>').join('')}
+function brandgo(x){brand=x;$('brands').classList.add('hidden');$('products').classList.remove('hidden');$('pt').textContent=x+' — '+cat;products()}
+function brands(){$('products').classList.add('hidden');$('brands').classList.remove('hidden')}
+function products(){let q=($('search').value||'').toLowerCase(),a=d.p.filter(p=>p.cat==cat&&p.brand==brand&&(p.name+' '+p.brand).toLowerCase().includes(q));$('pl').innerHTML=a.map(p=>'<div class="item"><b>'+p.name+'</b><span class="price">'+(p.usd?money(calc(p)):'—')+'</span></div>').join('')}
+function manage(){['home','brands','products'].forEach(x=>$(x).classList.add('hidden'));$('manage').classList.remove('hidden');ml()}
+function add(){let p={id:Date.now(),name:$('n').value.trim(),cat:$('c').value.trim()||'عمومی',brand:$('b').value.trim()||'بدون برند',usd:num($('u').value),g:num($('g').value),profit:num($('p').value),ship:num($('s').value),extra:num($('e').value)};if(!p.name||!p.usd)return alert('نام و قیمت دلار را وارد کنید');d.p.push(p);save();ml()}
+function ml(){$('ml').innerHTML=d.p.map(p=>'<div style="padding:6px;border-bottom:1px solid #ddd">'+p.brand+' — '+p.name+' <button onclick="del('+p.id+')">حذف</button></div>').join('')}
+function del(i){d.p=d.p.filter(p=>p.id!=i);save();ml()}$('rate').value=fmt(d.rate);home();
+</script></body></html>
